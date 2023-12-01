@@ -178,6 +178,8 @@ defmodule Ecto.Adapters.Postgres do
     database =
       Keyword.fetch!(opts, :database) || raise ":database is nil in repository configuration"
 
+    schema = if opts[:schema] == :unspecified, do: nil, else: opts[:schema]
+
     encoding = if opts[:encoding] == :unspecified, do: nil, else: opts[:encoding] || "UTF8"
     maintenance_database = Keyword.get(opts, :maintenance_database, @default_maintenance_database)
     opts = Keyword.put(opts, :database, maintenance_database)
@@ -198,7 +200,7 @@ defmodule Ecto.Adapters.Postgres do
 
         case run_query(create_command, opts) do
           {:ok, _} ->
-            :ok
+            run_query("CREATE SCHEMA #{schema}", opts)
 
           {:error, %{postgres: %{code: :duplicate_database}}} ->
             {:error, :already_up}
